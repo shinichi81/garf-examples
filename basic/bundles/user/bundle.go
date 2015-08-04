@@ -3,9 +3,9 @@ package user
 import (
 	"log"
 
-	"github.com/weSolution/gapi-helpers/mongodb"
-	"github.com/weSolution/gapi/registry"
-	"github.com/weSolution/gapi/server"
+	"github.com/backenderia/garf/registry"
+	"github.com/backenderia/garf/server"
+	"github.com/backenderia/garf-contrib/mongodb"
 	"gopkg.in/mgo.v2"
 )
 

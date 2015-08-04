@@ -1,9 +1,9 @@
-package gapi
+package garf
 
 import (
-	"github.com/weSolution/gapi-example/bundles/user"
-	"github.com/weSolution/gapi/registry"
-	"github.com/weSolution/gapi/server/echo"
+	"github.com/backenderia/garf-example/bundles/user"
+	"github.com/backenderia/garf/registry"
+	"github.com/backenderia/garf/server/echo"
 )
 
 func Registry() registry.Handler {

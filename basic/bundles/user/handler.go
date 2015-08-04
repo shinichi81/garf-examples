@@ -1,7 +1,7 @@
 package user
 
 import (
-	"github.com/weSolution/gapi/server"
+	"github.com/backenderia/garf/server"
 	"gopkg.in/mgo.v2/bson"
 )
 

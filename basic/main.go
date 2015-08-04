@@ -1,9 +1,9 @@
 package main
 
-import "github.com/weSolution/gapi-example/gapi"
+import "github.com/backenderia/garf-example/garf"
 
 func main() {
-	r := gapi.Registry()
+	r := garf.Registry()
 	r.Set("URI", "mongodb://localhost:32768")
 	r.Configure()
 	r.Server().Run(":3000")
