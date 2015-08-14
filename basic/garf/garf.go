@@ -1,7 +1,7 @@
 package garf
 
 import (
-	"github.com/backenderia/garf-example/bundles/user"
+	"github.com/backenderia/garf-examples/basic/bundles/user"
 	"github.com/backenderia/garf/registry"
 	"github.com/backenderia/garf/server/echo"
 )

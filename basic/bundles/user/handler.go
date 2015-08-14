@@ -1,23 +1,21 @@
 package user
 
-import (
-	"github.com/backenderia/garf/server"
-	"gopkg.in/mgo.v2/bson"
-)
+import "github.com/backenderia/garf/server"
 
 func (u *bundle) prepare(c server.Context) User {
+
 	id := u.server.Param(c, "id")
-	name := u.server.Form(c, "name")
+	secret := u.server.Form(c, "secret")
 
 	q := User{
-		ID:   bson.ObjectIdHex(id),
-		Name: name,
+		ID:     id,
+		Secret: []byte(secret),
 	}
 
 	return q
 }
 
-func (u *bundle) handler(f ModelHandler) server.HttpHandler {
+func (u *bundle) handler(f ModelHandler) server.HandlerFunc {
 	return func(c server.Context) error {
 		query := u.prepare(c)
 

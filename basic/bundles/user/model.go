@@ -1,9 +1,35 @@
 package user
 
-import "gopkg.in/mgo.v2/bson"
+import (
+	"crypto/rand"
+	"crypto/sha1"
+	"fmt"
+	"io"
+	"os"
+
+	"gopkg.in/mgo.v2/bson"
+)
 
 // ModelHandler represents all model functions on this package
 type ModelHandler func(User) ([]User, error)
+
+const saltSize = 16
+
+// GenerateSalt creates a new salt for hashing the password
+func GenerateSalt(secret []byte) []byte {
+	buf := make([]byte, saltSize, saltSize+sha1.Size)
+	_, err := io.ReadFull(rand.Reader, buf)
+
+	if err != nil {
+		fmt.Printf("random read failed: %v", err)
+		os.Exit(1)
+	}
+
+	hash := sha1.New()
+	hash.Write(buf)
+	hash.Write(secret)
+	return hash.Sum(buf)
+}
 
 // List User
 func List(q User) (res []User, err error) {
@@ -19,7 +45,7 @@ func Create(q User) (res []User, err error) {
 	user, conn := Db()
 	defer conn.Close()
 	err = user.Insert(&User{
-		Name: q.Name,
+		Secret: GenerateSalt(q.Secret),
 	})
 	return
 }
@@ -45,7 +71,7 @@ func Update(q User) (res []User, err error) {
 		},
 		bson.M{
 			"$set": bson.M{
-				"Name": q.Name,
+				"Secret": GenerateSalt(q.Secret),
 			},
 		},
 	)

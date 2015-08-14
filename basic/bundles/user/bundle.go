@@ -3,18 +3,18 @@ package user
 import (
 	"log"
 
+	"github.com/backenderia/garf-contrib/mongodb"
 	"github.com/backenderia/garf/registry"
 	"github.com/backenderia/garf/server"
-	"github.com/backenderia/garf-contrib/mongodb"
 	"gopkg.in/mgo.v2"
 )
 
 const (
-	basePath = "/user/"
+	basePath = "/user"
 )
 
 type bundle struct {
-	server server.Handler
+	server server.Support
 }
 
 // New instance from this bundle
@@ -32,13 +32,12 @@ func (u *bundle) Init(c map[string]interface{}) {
 }
 
 // Register bundle's routes to server
-func (u *bundle) Register(r server.Handler) {
+func (u *bundle) Register(r server.Support) {
 	u.server = r
 
-	route := r.Group(basePath)
-	route.Get("", u.handler(List))
-	route.Post("", u.handler(Create))
-	route.Get(":id", u.handler(Read))
-	route.Post(":id", u.handler(Update))
-	route.Del(":id", u.handler(Delete))
+	r.Get(basePath+"/user/", u.handler(List))
+	r.Post(basePath+"/", u.handler(Create))
+	r.Get(basePath+"/:id", u.handler(Read))
+	r.Post(basePath+"/:id", u.handler(Update))
+	r.Del(basePath+"/:id", u.handler(Delete))
 }
