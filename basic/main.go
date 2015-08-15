@@ -1,16 +1,15 @@
 package main
 
 import (
-	"errors"
-	"fmt"
-	"net/http"
-
+	"github.com/backenderia/garf-contrib/jwt-auth"
 	"github.com/backenderia/garf-examples/basic/bundles/user"
 	"github.com/backenderia/garf-examples/basic/garf"
-	"github.com/backenderia/garf/server"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/labstack/echo"
 	mw "github.com/labstack/echo/middleware"
+)
+
+const (
+	signingKey = "mysecretkey"
 )
 
 func main() {
@@ -23,51 +22,42 @@ func main() {
 	s.Use(mw.Logger())
 	s.Use(mw.Recover())
 
-	s.Use(JWTAuth(func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Claims["id"].(string); !ok {
-			return nil, errors.New("missing id")
+	s.Use(jwtauth.New(func(token *jwt.Token) (sign interface{}, err error) {
+		id := token.Claims["id"]
+		secret := token.Claims["secret"]
+
+		if id, ok := id.(string); ok {
+			if secret, ok := secret.(string); ok {
+				success := false
+				success, err = user.Auth(user.User{
+					ID:     id,
+					Secret: []byte(secret),
+				})
+
+				if success {
+					sign = []byte(signingKey)
+					return
+				}
+			}
 		}
 
-		u, err := user.Read(user.User{
-			ID: token.Claims["id"].(string),
-		})
-
-		if len(u) == 0 || err != nil {
-			return nil, err
-		}
-
-		return u[0].Secret, nil
+		return
 	}))
 
 	r.Configure()
+
+	// ** DEMO INSTRUCTIONS: **
+	//
+	// Uncomment this to create this user on your mongo server
+	// user.Create(user.User{
+	// 	ID:     "user",
+	// 	Secret: []byte("123"),
+	// })
+	//
+	// Then use this Authentication token for requesting:
+	// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzZXIiLCJzZWNyZXQiOiIxMjMifQ.Affo3QE5iLDgXfllo_o47uEpUJp-qRAWexVZ8ZdfRZQ
+	//
+	// Note: That token works only if SingingKey="mysecretkey"
+
 	s.Run(":3000")
-}
-
-type SecretFunc func(*jwt.Token) (interface{}, error)
-
-func JWTAuth(a SecretFunc) server.HandlerFunc {
-	return func(c server.Context) error {
-		if (c.Request().Header.Get(echo.Upgrade)) == echo.WebSocket {
-			return nil
-		}
-
-		auth := c.Request().Header.Get("Authorization")
-		l := len("Bearer")
-		he := echo.NewHTTPError(http.StatusUnauthorized)
-
-		if len(auth) > l+1 && auth[:l] == "Bearer" {
-			t, err := jwt.Parse(auth[l+1:], func(token *jwt.Token) (interface{}, error) {
-				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-					return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-				}
-
-				return a(token)
-			})
-			if err == nil && t.Valid {
-				c.Set("claims", t.Claims)
-				return nil
-			}
-		}
-		return he
-	}
 }

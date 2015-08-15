@@ -4,8 +4,8 @@ import "github.com/backenderia/garf/server"
 
 func (u *bundle) prepare(c server.Context) User {
 
-	id := u.server.Param(c, "id")
-	secret := u.server.Form(c, "secret")
+	id := c.Param("id")
+	secret := c.Form("secret")
 
 	q := User{
 		ID:     id,
@@ -21,9 +21,9 @@ func (u *bundle) handler(f ModelHandler) server.HandlerFunc {
 
 		result, err := f(query)
 		if err != nil {
-			return u.server.Error(c, 500, err)
+			return c.Error(500, err)
 		}
 
-		return u.server.JSON(c, result)
+		return c.JSON(200, result)
 	}
 }

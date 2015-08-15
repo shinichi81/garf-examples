@@ -13,9 +13,7 @@ const (
 	basePath = "/user"
 )
 
-type bundle struct {
-	server server.Support
-}
+type bundle struct{}
 
 // New instance from this bundle
 func New() registry.Bundle {
@@ -33,8 +31,6 @@ func (u *bundle) Init(c map[string]interface{}) {
 
 // Register bundle's routes to server
 func (u *bundle) Register(r server.Support) {
-	u.server = r
-
 	r.Get(basePath+"/user/", u.handler(List))
 	r.Post(basePath+"/", u.handler(Create))
 	r.Get(basePath+"/:id", u.handler(Read))

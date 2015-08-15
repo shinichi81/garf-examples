@@ -1,11 +1,8 @@
 package user
 
 import (
-	"crypto/rand"
+	"bytes"
 	"crypto/sha1"
-	"fmt"
-	"io"
-	"os"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -15,20 +12,29 @@ type ModelHandler func(User) ([]User, error)
 
 const saltSize = 16
 
-// GenerateSalt creates a new salt for hashing the password
-func GenerateSalt(secret []byte) []byte {
-	buf := make([]byte, saltSize, saltSize+sha1.Size)
-	_, err := io.ReadFull(rand.Reader, buf)
+func createHash(secret []byte) []byte {
+	result := make([]byte, saltSize)
+	hash := sha1.New()
+	hash.Write(secret)
+	return hash.Sum(result)
+}
 
-	if err != nil {
-		fmt.Printf("random read failed: %v", err)
-		os.Exit(1)
+// Auth given User
+func Auth(u User) (bool, error) {
+	user, err := Read(User{
+		ID: u.ID,
+	})
+
+	if len(user) == 0 || err != nil {
+		return false, err
 	}
 
-	hash := sha1.New()
-	hash.Write(buf)
-	hash.Write(secret)
-	return hash.Sum(buf)
+	secret := createHash(u.Secret)
+	if !bytes.Equal(user[0].Secret, secret) {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 // List User
@@ -45,7 +51,8 @@ func Create(q User) (res []User, err error) {
 	user, conn := Db()
 	defer conn.Close()
 	err = user.Insert(&User{
-		Secret: GenerateSalt(q.Secret),
+		ID:     q.ID,
+		Secret: createHash(q.Secret),
 	})
 	return
 }
@@ -71,7 +78,7 @@ func Update(q User) (res []User, err error) {
 		},
 		bson.M{
 			"$set": bson.M{
-				"Secret": GenerateSalt(q.Secret),
+				"Secret": createHash(q.Secret),
 			},
 		},
 	)
