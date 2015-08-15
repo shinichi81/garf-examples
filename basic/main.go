@@ -48,7 +48,8 @@ func main() {
 
 	// ** DEMO INSTRUCTIONS: **
 	//
-	// Uncomment this to create this user on your mongo server
+	// Uncomment this part below to create the demo user on your mongo server
+	//
 	// user.Create(user.User{
 	// 	ID:     "user",
 	// 	Secret: []byte("123"),
