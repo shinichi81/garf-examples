@@ -22,6 +22,7 @@ func main() {
 	s.Use(mw.Logger())
 	s.Use(mw.Recover())
 
+	// JWT Authentication middleware
 	s.Use(jwtauth.New(func(token *jwt.Token) (sign interface{}, err error) {
 		id := token.Claims["id"]
 		secret := token.Claims["secret"]
