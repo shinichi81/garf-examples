@@ -3,10 +3,10 @@ package user
 import (
 	"log"
 
-	"github.com/backenderia/garf-contrib/mongodb"
+	"github.com/backenderia/garf-contrib/adapter"
+	"github.com/backenderia/garf-contrib/adapter/adapters/mongodb"
 	"github.com/backenderia/garf/registry"
 	"github.com/backenderia/garf/server"
-	"gopkg.in/mgo.v2"
 )
 
 const (
@@ -21,19 +21,22 @@ func New() registry.Bundle {
 }
 
 // Db retrieves User's collection and session
-var Db func() (*mgo.Collection, *mgo.Session)
+// var Db func() (*mgo.Collection, *mgo.Session)
+
+var UserStore adapter.Store
 
 // Init bundle
 func (u *bundle) Init(c map[string]interface{}) {
-	Db = mongodb.Configure(c["uri"].(string), "User")
+	// Db = mongodb.Configure(c["uri"].(string), "User")
+	UserStore = mongodb.New(c["uri"].(string), "User")
 	log.Println("`User` route configured...")
 }
 
 // Register bundle's routes to server
 func (u *bundle) Register(r server.Support) {
 	r.Get(basePath+"/user/", u.handler(List))
-	r.Post(basePath+"/", u.handler(Create))
+	r.Post(basePath+"/:id", u.handler(Create))
 	r.Get(basePath+"/:id", u.handler(Read))
-	r.Post(basePath+"/:id", u.handler(Update))
+	r.Put(basePath+"/:id", u.handler(Update))
 	r.Del(basePath+"/:id", u.handler(Delete))
 }

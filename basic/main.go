@@ -15,7 +15,7 @@ const (
 func main() {
 
 	r := garf.Registry()
-	r.Set("URI", "mongodb://localhost:27017")
+	r.Set("URI", "mongodb://localhost:27017/garf")
 
 	s := r.Server()
 

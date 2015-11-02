@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha1"
 
+	"github.com/backenderia/garf-contrib/adapter"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -40,55 +41,62 @@ func Auth(u User) (bool, error) {
 // List User
 func List(q User) (res []User, err error) {
 	var result []User
-	user, conn := Db()
-	defer conn.Close()
-	err = user.Find(bson.M{}).All(&result)
+
+	task := UserStore.Read(adapter.M{}).Options(adapter.M{
+		"All": true,
+	})
+
+	err = task.Exec(result)
+
 	return result, err
 }
 
 // Create User
 func Create(q User) (res []User, err error) {
-	user, conn := Db()
-	defer conn.Close()
-	err = user.Insert(&User{
-		ID:     q.ID,
-		Secret: createHash(q.Secret),
+	task := UserStore.Create(q.ID, adapter.M{
+		"secret": createHash(q.Secret),
 	})
-	return
+
+	var u User
+	err = task.Exec(&u)
+
+	return []User{u}, err
 }
 
 // Read User
-func Read(q User) ([]User, error) {
-	var result User
-	user, conn := Db()
-	defer conn.Close()
-	err := user.Find(bson.M{
+func Read(q User) (res []User, err error) {
+	task := UserStore.Read(adapter.M{
 		"_id": q.ID,
-	}).One(&result)
-	return []User{result}, err
+	})
+
+	var u User
+	err = task.Exec(&u)
+
+	return []User{u}, err
 }
 
 // Update User
 func Update(q User) (res []User, err error) {
-	user, conn := Db()
-	defer conn.Close()
-	err = user.Update(
-		bson.M{
-			"_id": q.ID,
+	task := UserStore.Update(adapter.M{
+		"_id": q.ID,
+	}, adapter.M{
+		"$set": bson.M{
+			"Secret": createHash(q.Secret),
 		},
-		bson.M{
-			"$set": bson.M{
-				"Secret": createHash(q.Secret),
-			},
-		},
-	)
+	})
+
+	err = task.Exec(&res)
+
 	return
 }
 
 // Delete User
 func Delete(q User) (res []User, err error) {
-	user, conn := Db()
-	defer conn.Close()
-	err = user.RemoveId(q.ID)
+	task := UserStore.Delete(adapter.M{
+		"_id": q.ID,
+	})
+
+	err = task.Exec(nil)
+
 	return
 }
